@@ -1,0 +1,17 @@
+# VeritySwarm — Cloudflare Tunnel Config
+# Location: C:\Users\acase\.cloudflared\config.yml
+# (This is a template — setup_tunnel.bat writes the real version with tunnel ID)
+
+tunnel: REPLACE_WITH_TUNNEL_ID
+credentials-file: C:\Users\acase\.cloudflared\REPLACE_WITH_TUNNEL_ID.json
+
+ingress:
+  # VeritySwarm landing page / API server
+  - hostname: throne.verityswarm.com
+    service: http://localhost:8888
+    originRequest:
+      connectTimeout: 10s
+      noTLSVerify: false
+
+  # Catch-all (required by cloudflared)
+  - service: http_status:404

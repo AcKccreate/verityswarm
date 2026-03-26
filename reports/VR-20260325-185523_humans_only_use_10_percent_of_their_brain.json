@@ -1,0 +1,157 @@
+{
+  "report_id": "VR-20260325-185523",
+  "claim": "Humans only use 10 percent of their brain",
+  "verdict": "UNVERIFIED",
+  "confidence": 0,
+  "summary": "Synthesis unavailable. Grok: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}; Claude: \"Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted\"",
+  "synthesis": "",
+  "round1": {
+    "Researcher": {
+      "agent": "Researcher",
+      "role": "Evidence Researcher",
+      "round": 1,
+      "analysis": "[Agent error: All backends failed. Last error: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}]",
+      "confidence": 0,
+      "sources": [],
+      "red_flags": [
+        "AGENT_ERROR"
+      ],
+      "key_insights": [],
+      "error": "All backends failed. Last error: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}"
+    },
+    "Skeptic": {
+      "agent": "Skeptic",
+      "role": "Adversarial Challenger",
+      "round": 1,
+      "analysis": "[Agent error: All backends failed. Last error: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}]",
+      "confidence": 0,
+      "sources": [],
+      "red_flags": [
+        "AGENT_ERROR"
+      ],
+      "key_insights": [],
+      "error": "All backends failed. Last error: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}"
+    },
+    "BiasDetector": {
+      "agent": "BiasDetector",
+      "role": "Bias & Framing Analyst",
+      "round": 1,
+      "analysis": "[Agent error: All backends failed. Last error: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}]",
+      "confidence": 0,
+      "sources": [],
+      "red_flags": [
+        "AGENT_ERROR"
+      ],
+      "key_insights": [],
+      "error": "All backends failed. Last error: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}"
+    },
+    "SourceCrossChecker": {
+      "agent": "SourceCrossChecker",
+      "role": "Source Credibility Verifier",
+      "round": 1,
+      "analysis": "[Agent error: All backends failed. Last error: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}]",
+      "confidence": 0,
+      "sources": [],
+      "red_flags": [
+        "AGENT_ERROR"
+      ],
+      "key_insights": [],
+      "error": "All backends failed. Last error: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}"
+    },
+    "ContextHistorian": {
+      "agent": "ContextHistorian",
+      "role": "Historical & Temporal Analyst",
+      "round": 1,
+      "analysis": "[Agent error: All backends failed. Last error: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}]",
+      "confidence": 0,
+      "sources": [],
+      "red_flags": [
+        "AGENT_ERROR"
+      ],
+      "key_insights": [],
+      "error": "All backends failed. Last error: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}"
+    }
+  },
+  "round2": {
+    "Researcher": {
+      "agent": "Researcher",
+      "role": "Evidence Researcher",
+      "round": 2,
+      "analysis": "[Agent error: All backends failed. Last error: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}]\n\n[Round 2 refinement failed: All backends failed. Last error: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}]",
+      "confidence": 0,
+      "sources": [],
+      "red_flags": [
+        "AGENT_ERROR",
+        "R2_DEGRADED"
+      ],
+      "key_insights": [],
+      "error": "All backends failed. Last error: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}"
+    },
+    "Skeptic": {
+      "agent": "Skeptic",
+      "role": "Adversarial Challenger",
+      "round": 2,
+      "analysis": "[Agent error: All backends failed. Last error: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}]\n\n[Round 2 refinement failed: All backends failed. Last error: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}]",
+      "confidence": 0,
+      "sources": [],
+      "red_flags": [
+        "AGENT_ERROR",
+        "R2_DEGRADED"
+      ],
+      "key_insights": [],
+      "error": "All backends failed. Last error: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}"
+    },
+    "BiasDetector": {
+      "agent": "BiasDetector",
+      "role": "Bias & Framing Analyst",
+      "round": 2,
+      "analysis": "[Agent error: All backends failed. Last error: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}]\n\n[Round 2 refinement failed: All backends failed. Last error: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}]",
+      "confidence": 0,
+      "sources": [],
+      "red_flags": [
+        "AGENT_ERROR",
+        "R2_DEGRADED"
+      ],
+      "key_insights": [],
+      "error": "All backends failed. Last error: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}"
+    },
+    "SourceCrossChecker": {
+      "agent": "SourceCrossChecker",
+      "role": "Source Credibility Verifier",
+      "round": 2,
+      "analysis": "[Agent error: All backends failed. Last error: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}]\n\n[Round 2 refinement failed: All backends failed. Last error: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}]",
+      "confidence": 0,
+      "sources": [],
+      "red_flags": [
+        "AGENT_ERROR",
+        "R2_DEGRADED"
+      ],
+      "key_insights": [],
+      "error": "All backends failed. Last error: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}"
+    },
+    "ContextHistorian": {
+      "agent": "ContextHistorian",
+      "role": "Historical & Temporal Analyst",
+      "round": 2,
+      "analysis": "[Agent error: All backends failed. Last error: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}]\n\n[Round 2 refinement failed: All backends failed. Last error: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}]",
+      "confidence": 0,
+      "sources": [],
+      "red_flags": [
+        "AGENT_ERROR",
+        "R2_DEGRADED"
+      ],
+      "key_insights": [],
+      "error": "All backends failed. Last error: Error code: 401 - {'code': 'The request does not have valid authentication credentials', 'error': 'No credentials presented. [WKE=unauthenticated:no-credentials]'}"
+    }
+  },
+  "sources": [],
+  "red_flags": [
+    "SYNTHESIS_ERROR",
+    "AGENT_ERROR",
+    "R2_DEGRADED"
+  ],
+  "key_insights": [],
+  "synthesizer_backend": "none",
+  "generated_at": "2026-03-25 18:55:23",
+  "pdf_path": ""
+}

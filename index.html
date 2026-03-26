@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VeritySwarm — AI Truth Verification</title>
+  <meta name="description" content="Five specialized AI agents collaborate to verify any claim. Transparent reasoning. Confidence scores. Source citations. No spin." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡</text></svg>" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            vs: {
+              bg:      '#07070f',
+              surface: '#0d0d1e',
+              card:    '#11112a',
+              border:  '#1e1e42',
+              green:   '#00e5a0',
+              blue:    '#4f8ef7',
+              purple:  '#8b5cf6',
+              red:     '#f87171',
+              yellow:  '#fbbf24',
+              muted:   '#6b7a99',
+              text:    '#dde3f0',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+          },
+          animation: {
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4,0,0.6,1) infinite',
+            'slide-up':   'slideUp 0.5s ease-out both',
+            'fade-in':    'fadeIn 0.8s ease-out both',
+            'shimmer':    'shimmer 2s linear infinite',
+            'scan':       'scan 2.5s ease-in-out infinite',
+          },
+          keyframes: {
+            slideUp:  { '0%': { opacity: 0, transform: 'translateY(24px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
+            fadeIn:   { '0%': { opacity: 0 }, '100%': { opacity: 1 } },
+            shimmer:  { '0%': { backgroundPosition: '-200% 0' }, '100%': { backgroundPosition: '200% 0' } },
+            scan:     { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(100%)' } },
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    body { background-color: #07070f; color: #dde3f0; }
+
+    /* Animated gradient orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      animation: drift 12s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+    @keyframes drift {
+      0%   { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(30px, -20px) scale(1.08); }
+    }
+
+    /* Grid texture overlay */
+    .grid-texture {
+      background-image:
+        linear-gradient(rgba(78,134,247,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(78,134,247,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    /* Shimmer effect on cards */
+    .shimmer-border {
+      position: relative;
+    }
+    .shimmer-border::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, #00e5a0, #4f8ef7, #8b5cf6, #00e5a0);
+      background-size: 300% 300%;
+      animation: shimmer 3s linear infinite;
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    /* Confidence bar fill */
+    .conf-bar { transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
+
+    /* Verdict badge colors */
+    .badge-true        { background: rgba(0,229,160,0.15); color: #00e5a0; border-color: rgba(0,229,160,0.3); }
+    .badge-false       { background: rgba(248,113,113,0.15); color: #f87171; border-color: rgba(248,113,113,0.3); }
+    .badge-partial     { background: rgba(251,191,36,0.15); color: #fbbf24; border-color: rgba(251,191,36,0.3); }
+    .badge-misleading  { background: rgba(251,191,36,0.12); color: #fb923c; border-color: rgba(251,191,36,0.25); }
+    .badge-unverified  { background: rgba(107,122,153,0.2); color: #94a3b8; border-color: rgba(107,122,153,0.3); }
+
+    /* Scan line animation inside shield */
+    .scan-line {
+      position: absolute;
+      left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #00e5a0, transparent);
+      animation: scan 2.5s ease-in-out infinite;
+      top: 0;
+    }
+
+    /* Pricing hover */
+    .pricing-card { transition: transform 0.2s, box-shadow 0.2s; }
+    .pricing-card:hover { transform: translateY(-4px); }
+
+    /* Input focus glow */
+    .claim-input:focus {
+      box-shadow: 0 0 0 2px rgba(0,229,160,0.25), 0 0 24px rgba(0,229,160,0.08);
+    }
+
+    /* Demo loading dots */
+    .dot-anim span { animation: dotBounce 1.4s ease-in-out infinite both; }
+    .dot-anim span:nth-child(2) { animation-delay: 0.2s; }
+    .dot-anim span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dotBounce { 0%,80%,100% { transform: scale(0); opacity: 0.3; } 40% { transform: scale(1); opacity: 1; } }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #07070f; }
+    ::-webkit-scrollbar-thumb { background: #1e1e42; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #2e2e5a; }
+  </style>
+</head>
+<body class="font-sans antialiased overflow-x-hidden">
+
+<!-- =====================================================================
+     NAV
+====================================================================== -->
+<nav class="fixed top-0 inset-x-0 z-50 border-b border-vs-border/40 backdrop-blur-xl bg-vs-bg/80">
+  <div class="max-w-6xl mx-auto px-6 flex items-center justify-between h-16">
+    <a href="#" class="flex items-center gap-3 group">
+      <div class="w-8 h-8 relative">
+        <svg viewBox="0 0 32 32" fill="none" class="w-full h-full">
+          <path d="M16 2 L29 7 L29 16 C29 23 22.5 29 16 31 C9.5 29 3 23 3 16 L3 7 Z" fill="rgba(0,229,160,0.12)" stroke="#00e5a0" stroke-width="1.5"/>
+          <path d="M11 16 L14.5 19.5 L21 13" stroke="#00e5a0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="font-bold text-lg tracking-tight text-white">Verity<span class="text-vs-green">Swarm</span></span>
+    </a>
+    <div class="hidden md:flex items-center gap-8 text-sm text-vs-muted">
+      <a href="#how" class="hover:text-white transition-colors">How It Works</a>
+      <a href="#demo" class="hover:text-white transition-colors">Demo</a>
+      <a href="#pricing" class="hover:text-white transition-colors">Pricing</a>
+    </div>
+    <a href="#pricing" class="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-vs-green text-vs-bg text-sm font-semibold hover:bg-emerald-400 transition-colors">
+      Get Started
+    </a>
+    <!-- mobile menu -->
+    <button class="md:hidden text-vs-muted hover:text-white" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+  </div>
+  <div id="mobile-menu" class="hidden md:hidden px-6 pb-4 flex flex-col gap-3 text-sm text-vs-muted border-t border-vs-border/40 pt-4">
+    <a href="#how" class="hover:text-white">How It Works</a>
+    <a href="#demo" class="hover:text-white">Demo</a>
+    <a href="#pricing" class="hover:text-white">Pricing</a>
+    <a href="#pricing" class="text-vs-green font-semibold">Get Started →</a>
+  </div>
+</nav>
+
+<!-- =====================================================================
+     HERO
+====================================================================== -->
+<section class="relative min-h-screen flex items-center justify-center pt-16 overflow-hidden grid-texture">
+  <!-- Background orbs -->
+  <div class="orb w-96 h-96 bg-emerald-500/10 top-20 -left-24" style="animation-duration:14s"></div>
+  <div class="orb w-80 h-80 bg-blue-600/10 top-40 right-0" style="animation-duration:18s; animation-delay:-4s"></div>
+  <div class="orb w-64 h-64 bg-purple-600/8 bottom-32 left-1/3" style="animation-duration:10s; animation-delay:-8s"></div>
+
+  <div class="relative z-10 max-w-5xl mx-auto px-6 text-center">
+    <!-- Badge -->
+    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-vs-green/30 bg-vs-green/8 text-vs-green text-xs font-medium tracking-wide mb-8 animate-fade-in">
+      <span class="w-1.5 h-1.5 rounded-full bg-vs-green animate-pulse-slow"></span>
+      5-Agent Swarm · Live Verification
+    </div>
+
+    <!-- Headline -->
+    <h1 class="text-5xl md:text-7xl font-black tracking-tight text-white leading-[1.05] mb-6 animate-slide-up">
+      Truth is earned,<br/>
+      <span class="bg-gradient-to-r from-vs-green via-vs-blue to-vs-purple bg-clip-text text-transparent">
+        not assumed.
+      </span>
+    </h1>
+
+    <p class="text-lg md:text-xl text-vs-muted max-w-2xl mx-auto mb-10 leading-relaxed animate-slide-up" style="animation-delay:0.15s">
+      VeritySwarm deploys five specialized AI agents to verify any claim —
+      gathering evidence, probing skeptically, detecting bias, and cross-checking
+      sources before a final synthesis delivers your verdict.
+    </p>
+
+    <!-- CTA row -->
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 animate-slide-up" style="animation-delay:0.25s">
+      <a href="#demo"
+         class="group flex items-center gap-2 px-8 py-4 rounded-xl bg-vs-green text-vs-bg font-bold text-base hover:bg-emerald-400 transition-all shadow-[0_0_30px_rgba(0,229,160,0.25)] hover:shadow-[0_0_45px_rgba(0,229,160,0.4)]">
+        Verify a Claim
+        <svg class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+      </a>
+      <a href="#how" class="flex items-center gap-2 px-8 py-4 rounded-xl border border-vs-border text-vs-text text-base hover:border-vs-blue/50 hover:text-white transition-colors">
+        See How It Works
+      </a>
+    </div>
+
+    <!-- Trust bar -->
+    <div class="flex flex-wrap justify-center items-center gap-6 text-vs-muted text-xs animate-fade-in" style="animation-delay:0.4s">
+      <span class="flex items-center gap-1.5"><svg class="w-3.5 h-3.5 text-vs-green" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Transparent Reasoning</span>
+      <span class="flex items-center gap-1.5"><svg class="w-3.5 h-3.5 text-vs-green" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Source Citations</span>
+      <span class="flex items-center gap-1.5"><svg class="w-3.5 h-3.5 text-vs-green" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Bias Detection</span>
+      <span class="flex items-center gap-1.5"><svg class="w-3.5 h-3.5 text-vs-green" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Confidence Score</span>
+      <span class="flex items-center gap-1.5"><svg class="w-3.5 h-3.5 text-vs-green" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>No Spin</span>
+    </div>
+  </div>
+</section>
+
+
+<!-- =====================================================================
+     HOW IT WORKS — 5 Agents
+====================================================================== -->
+<section id="how" class="py-28 relative">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="text-center mb-16">
+      <p class="text-vs-green text-sm font-semibold tracking-widest uppercase mb-3">The Swarm</p>
+      <h2 class="text-3xl md:text-5xl font-bold text-white mb-4">Five minds. One verdict.</h2>
+      <p class="text-vs-muted max-w-xl mx-auto">Each agent is purpose-built, adversarially tuned, and runs independently before the Synthesizer delivers a final ruling.</p>
+    </div>
+
+    <!-- Flow diagram row -->
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
+
+      <!-- Agent 1: Researcher -->
+      <div class="bg-vs-card border border-vs-border rounded-2xl p-5 flex flex-col gap-3 hover:border-vs-green/40 transition-colors group">
+        <div class="w-10 h-10 rounded-xl bg-vs-green/10 border border-vs-green/20 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">🔍</div>
+        <div>
+          <p class="text-xs text-vs-green font-semibold tracking-wide uppercase">Agent 1</p>
+          <p class="text-white font-bold mt-0.5">Researcher</p>
+          <p class="text-vs-muted text-sm mt-1 leading-relaxed">Gathers evidence for and against. Cites sources. Rates evidence quality.</p>
+        </div>
+      </div>
+
+      <!-- Arrow -->
+      <div class="hidden md:flex justify-center">
+        <svg class="w-6 h-6 text-vs-border" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </div>
+
+      <!-- Stacked: Skeptic + BiasDetector + SourceCrossChecker in middle column -->
+      <!-- On mobile these just stack; on desktop we collapse into 3-card middle -->
+    </div>
+
+    <!-- Full agent grid (alternate layout for clarity) -->
+    <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <!-- Researcher -->
+      <div class="bg-vs-card border border-vs-border rounded-2xl p-5 flex flex-col gap-3 hover:border-vs-green/40 transition-colors group">
+        <div class="w-10 h-10 rounded-xl bg-vs-green/10 border border-vs-green/20 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">🔍</div>
+        <div>
+          <p class="text-xs text-vs-green font-semibold tracking-wide uppercase mb-0.5">Researcher</p>
+          <p class="text-vs-muted text-sm leading-relaxed">Evidence mining. Source quality rating. Context assembly.</p>
+        </div>
+        <div class="mt-auto flex items-center gap-1.5 text-xs text-vs-muted">
+          <div class="w-1.5 h-1.5 rounded-full bg-vs-blue animate-pulse-slow"></div>
+          Claude
+        </div>
+      </div>
+
+      <!-- Skeptic -->
+      <div class="bg-vs-card border border-vs-border rounded-2xl p-5 flex flex-col gap-3 hover:border-red-500/30 transition-colors group">
+        <div class="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">⚔️</div>
+        <div>
+          <p class="text-xs text-vs-red font-semibold tracking-wide uppercase mb-0.5">Skeptic</p>
+          <p class="text-vs-muted text-sm leading-relaxed">Devil's advocate. Counter-evidence. Missing context probes.</p>
+        </div>
+        <div class="mt-auto flex items-center gap-1.5 text-xs text-vs-muted">
+          <div class="w-1.5 h-1.5 rounded-full bg-vs-blue animate-pulse-slow"></div>
+          Claude
+        </div>
+      </div>
+
+      <!-- Bias Detector -->
+      <div class="bg-vs-card border border-vs-border rounded-2xl p-5 flex flex-col gap-3 hover:border-vs-yellow/30 transition-colors group">
+        <div class="w-10 h-10 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">⚖️</div>
+        <div>
+          <p class="text-xs text-vs-yellow font-semibold tracking-wide uppercase mb-0.5">Bias Detector</p>
+          <p class="text-vs-muted text-sm leading-relaxed">Political & ideological framing. Loaded language. Motive analysis.</p>
+        </div>
+        <div class="mt-auto flex items-center gap-1.5 text-xs text-vs-muted">
+          <div class="w-1.5 h-1.5 rounded-full bg-vs-blue animate-pulse-slow"></div>
+          Claude
+        </div>
+      </div>
+
+      <!-- Source Cross-Checker -->
+      <div class="bg-vs-card border border-vs-border rounded-2xl p-5 flex flex-col gap-3 hover:border-vs-purple/40 transition-colors group">
+        <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">🔗</div>
+        <div>
+          <p class="text-xs text-vs-purple font-semibold tracking-wide uppercase mb-0.5">Cross-Checker</p>
+          <p class="text-vs-muted text-sm leading-relaxed">Source credibility. Inter-source consistency. Red flag detection.</p>
+        </div>
+        <div class="mt-auto flex items-center gap-1.5 text-xs text-vs-muted">
+          <div class="w-1.5 h-1.5 rounded-full bg-vs-blue animate-pulse-slow"></div>
+          Claude
+        </div>
+      </div>
+
+      <!-- Synthesizer -->
+      <div class="bg-gradient-to-b from-vs-green/10 to-vs-card border border-vs-green/25 rounded-2xl p-5 flex flex-col gap-3 group shimmer-border hover:shadow-[0_0_30px_rgba(0,229,160,0.08)] transition-shadow">
+        <div class="w-10 h-10 rounded-xl bg-vs-green/15 border border-vs-green/30 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">🏛️</div>
+        <div>
+          <p class="text-xs text-vs-green font-bold tracking-wide uppercase mb-0.5">Synthesizer</p>
+          <p class="text-vs-muted text-sm leading-relaxed">Final arbiter. Weighs all evidence. Issues definitive verdict.</p>
+        </div>
+        <div class="mt-auto flex items-center gap-1.5 text-xs text-vs-muted">
+          <div class="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse-slow"></div>
+          Grok · Gemini fallback
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =====================================================================
+     DEMO INPUT
+====================================================================== -->
+<section id="demo" class="py-20 relative overflow-hidden">
+  <div class="absolute inset-0 bg-gradient-to-b from-vs-bg via-vs-surface/30 to-vs-bg pointer-events-none"></div>
+  <div class="max-w-3xl mx-auto px-6 relative z-10">
+    <div class="text-center mb-10">
+      <p class="text-vs-green text-sm font-semibold tracking-widest uppercase mb-3">Try It</p>
+      <h2 class="text-3xl md:text-4xl font-bold text-white">Enter any claim.</h2>
+    </div>
+
+    <!-- Input box -->
+    <div class="bg-vs-card border border-vs-border rounded-2xl p-1 shadow-[0_0_60px_rgba(0,229,160,0.04)]">
+      <div class="flex gap-2 items-end p-4">
+        <textarea
+          id="claimInput"
+          class="claim-input flex-1 bg-transparent text-vs-text placeholder-vs-muted/50 text-base resize-none outline-none border-0 leading-relaxed transition-shadow"
+          rows="2"
+          placeholder="e.g. The Great Wall of China is visible from space with the naked eye."
+          oninput="this.rows = Math.min(5, Math.max(2, this.value.split('\n').length + (this.value.length > 80 ? 1 : 0)))"
+        ></textarea>
+        <button
+          id="verifyBtn"
+          onclick="runDemo()"
+          class="shrink-0 flex items-center gap-2 px-5 py-3 rounded-xl bg-vs-green text-vs-bg font-bold text-sm hover:bg-emerald-400 transition-all shadow-[0_0_20px_rgba(0,229,160,0.2)] hover:shadow-[0_0_30px_rgba(0,229,160,0.35)] active:scale-95"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          Verify
+        </button>
+      </div>
+      <div class="px-4 pb-3 flex flex-wrap gap-2">
+        <button onclick="setExample(this)" data-claim="COVID-19 vaccines contain microchips for tracking" class="px-3 py-1 rounded-full border border-vs-border text-xs text-vs-muted hover:text-white hover:border-vs-blue/40 transition-colors">Microchip vaccines</button>
+        <button onclick="setExample(this)" data-claim="Humans only use 10% of their brain" class="px-3 py-1 rounded-full border border-vs-border text-xs text-vs-muted hover:text-white hover:border-vs-blue/40 transition-colors">10% brain myth</button>
+        <button onclick="setExample(this)" data-claim="Wind turbines cause cancer" class="px-3 py-1 rounded-full border border-vs-border text-xs text-vs-muted hover:text-white hover:border-vs-blue/40 transition-colors">Wind turbines &amp; cancer</button>
+        <button onclick="setExample(this)" data-claim="Finland doesn't exist" class="px-3 py-1 rounded-full border border-vs-border text-xs text-vs-muted hover:text-white hover:border-vs-blue/40 transition-colors">Finland conspiracy</button>
+      </div>
+    </div>
+
+    <!-- Loading state -->
+    <div id="loadingState" class="hidden mt-6 bg-vs-card border border-vs-border rounded-2xl p-6">
+      <div class="flex items-center gap-4 mb-4">
+        <div class="relative w-10 h-10 shrink-0">
+          <svg viewBox="0 0 32 32" fill="none" class="w-full h-full animate-pulse-slow">
+            <path d="M16 2 L29 7 L29 16 C29 23 22.5 29 16 31 C9.5 29 3 23 3 16 L3 7 Z" fill="rgba(0,229,160,0.12)" stroke="#00e5a0" stroke-width="1.5"/>
+          </svg>
+          <div class="scan-line"></div>
+        </div>
+        <div>
+          <p class="text-white font-semibold text-sm" id="loadingText">Dispatching swarm agents...</p>
+          <p class="text-vs-muted text-xs mt-0.5">This demo shows a sample report. Full API integration available on Pro.</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-5 gap-2" id="agentProgress">
+        <div class="agent-step flex flex-col items-center gap-1.5 opacity-30" data-agent="Researcher"><div class="w-8 h-8 rounded-lg bg-vs-green/10 border border-vs-green/20 flex items-center justify-center text-sm">🔍</div><span class="text-xs text-vs-muted">Researcher</span></div>
+        <div class="agent-step flex flex-col items-center gap-1.5 opacity-30" data-agent="Skeptic"><div class="w-8 h-8 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center text-sm">⚔️</div><span class="text-xs text-vs-muted">Skeptic</span></div>
+        <div class="agent-step flex flex-col items-center gap-1.5 opacity-30" data-agent="BiasDetector"><div class="w-8 h-8 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center text-sm">⚖️</div><span class="text-xs text-vs-muted">Bias</span></div>
+        <div class="agent-step flex flex-col items-center gap-1.5 opacity-30" data-agent="CrossChecker"><div class="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-sm">🔗</div><span class="text-xs text-vs-muted">Sources</span></div>
+        <div class="agent-step flex flex-col items-center gap-1.5 opacity-30" data-agent="Synthesizer"><div class="w-8 h-8 rounded-lg bg-vs-green/15 border border-vs-green/30 flex items-center justify-center text-sm">🏛️</div><span class="text-xs text-vs-muted">Synthesis</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =====================================================================
+     SAMPLE VERITY REPORT
+====================================================================== -->
+<section id="report" class="py-10 pb-28 relative">
+  <div class="max-w-3xl mx-auto px-6">
+    <div class="text-center mb-10">
+      <p class="text-vs-muted text-sm">Sample Verity Report</p>
+      <h2 class="text-2xl md:text-3xl font-bold text-white mt-1">What you get every time.</h2>
+    </div>
+
+    <!-- Report card -->
+    <div class="bg-vs-card border border-vs-border rounded-2xl overflow-hidden shadow-[0_8px_64px_rgba(0,0,0,0.5)]" id="reportCard">
+      <!-- Header -->
+      <div class="px-6 pt-6 pb-5 border-b border-vs-border">
+        <div class="flex items-start justify-between gap-4 mb-4">
+          <div class="flex items-center gap-2">
+            <svg class="w-5 h-5 text-vs-green shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            <span class="text-xs font-semibold text-vs-green tracking-widest uppercase">Verity Report</span>
+          </div>
+          <span class="text-xs text-vs-muted font-mono shrink-0">VR-2941-A</span>
+        </div>
+        <p class="text-white font-semibold text-lg leading-snug" id="reportClaim">
+          "The Great Wall of China is visible from space with the naked eye."
+        </p>
+      </div>
+
+      <!-- Verdict + score -->
+      <div class="px-6 py-5 flex flex-col sm:flex-row gap-6 border-b border-vs-border">
+        <div class="flex items-center gap-4">
+          <div id="verdictBadge" class="badge-false inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border text-sm font-bold tracking-wide">
+            <span>✗</span> FALSE
+          </div>
+        </div>
+        <div class="flex-1">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs text-vs-muted font-medium">Confidence Score</span>
+            <span id="confScore" class="text-sm font-bold font-mono text-white">94 / 100</span>
+          </div>
+          <div class="h-2 bg-vs-border rounded-full overflow-hidden">
+            <div id="confBar" class="conf-bar h-full bg-gradient-to-r from-vs-green to-emerald-400 rounded-full" style="width: 94%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="px-6 py-5 border-b border-vs-border">
+        <p class="text-xs text-vs-muted uppercase font-semibold tracking-wide mb-2">Summary</p>
+        <p class="text-vs-text leading-relaxed text-sm" id="reportSummary">
+          This claim is false. While the Great Wall is undeniably large, its width (~5–8 metres) is
+          too narrow to resolve with the naked eye from low Earth orbit (~400 km altitude). NASA and
+          multiple astronaut accounts confirm this is a persistent myth with no supporting evidence.
+        </p>
+      </div>
+
+      <!-- Reasoning chain (accordion) -->
+      <div class="px-6 py-5 border-b border-vs-border">
+        <p class="text-xs text-vs-muted uppercase font-semibold tracking-wide mb-3">Reasoning Chain</p>
+        <div class="flex flex-col gap-2" id="reasoningChain">
+
+          <details class="group border border-vs-border rounded-xl overflow-hidden">
+            <summary class="flex items-center justify-between gap-3 px-4 py-3 cursor-pointer hover:bg-white/2 transition-colors select-none">
+              <div class="flex items-center gap-3">
+                <span class="text-base">🔍</span>
+                <div>
+                  <span class="text-sm font-medium text-white">Researcher</span>
+                  <span class="ml-2 text-xs text-vs-muted">0.95 confidence</span>
+                </div>
+              </div>
+              <svg class="w-4 h-4 text-vs-muted group-open:rotate-90 transition-transform shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </summary>
+            <div class="px-4 pb-4 pt-1 text-sm text-vs-muted leading-relaxed border-t border-vs-border">
+              Human visual acuity at 400 km altitude cannot resolve objects narrower than ~10 km. The Great Wall averages 5–8 m wide. NASA's FAQs explicitly state the wall is not visible from the ISS without optical aids. No credible astronaut has confirmed unaided visibility. Sources: NASA.gov FAQ, Scientific American, peer-reviewed studies on human visual limits.
+            </div>
+          </details>
+
+          <details class="group border border-vs-border rounded-xl overflow-hidden">
+            <summary class="flex items-center justify-between gap-3 px-4 py-3 cursor-pointer hover:bg-white/2 transition-colors select-none">
+              <div class="flex items-center gap-3">
+                <span class="text-base">⚔️</span>
+                <div>
+                  <span class="text-sm font-medium text-white">Skeptic</span>
+                  <span class="ml-2 text-xs text-vs-muted">0.92 confidence</span>
+                </div>
+              </div>
+              <svg class="w-4 h-4 text-vs-muted group-open:rotate-90 transition-transform shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </summary>
+            <div class="px-4 pb-4 pt-1 text-sm text-vs-muted leading-relaxed border-t border-vs-border">
+              Counter-argument: Chinese astronaut Yang Liwei reportedly stated he could not see it during his 2003 mission. The claim persists despite repeated debunking — potentially due to textbook propagation. There is no verified photographic evidence of unaided naked-eye sighting.
+            </div>
+          </details>
+
+          <details class="group border border-vs-border rounded-xl overflow-hidden">
+            <summary class="flex items-center justify-between gap-3 px-4 py-3 cursor-pointer hover:bg-white/2 transition-colors select-none">
+              <div class="flex items-center gap-3">
+                <span class="text-base">⚖️</span>
+                <div>
+                  <span class="text-sm font-medium text-white">Bias Detector</span>
+                  <span class="ml-2 text-xs text-vs-muted">0.88 confidence</span>
+                </div>
+              </div>
+              <svg class="w-4 h-4 text-vs-muted group-open:rotate-90 transition-transform shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </summary>
+            <div class="px-4 pb-4 pt-1 text-sm text-vs-muted leading-relaxed border-t border-vs-border">
+              Mild nationalist framing: the claim inflates national achievement mythology. No significant political motivation to actively spread the myth today, but institutional inertia in older educational materials has sustained it. Bias toward the claim is low; no major ideological agenda detected.
+            </div>
+          </details>
+
+          <details class="group border border-vs-border rounded-xl overflow-hidden">
+            <summary class="flex items-center justify-between gap-3 px-4 py-3 cursor-pointer hover:bg-white/2 transition-colors select-none">
+              <div class="flex items-center gap-3">
+                <span class="text-base">🔗</span>
+                <div>
+                  <span class="text-sm font-medium text-white">Source Cross-Checker</span>
+                  <span class="ml-2 text-xs text-vs-muted">0.96 confidence</span>
+                </div>
+              </div>
+              <svg class="w-4 h-4 text-vs-muted group-open:rotate-90 transition-transform shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </summary>
+            <div class="px-4 pb-4 pt-1 text-sm text-vs-muted leading-relaxed border-t border-vs-border">
+              High source consistency across: NASA.gov, Snopes.com, Scientific American, ESA documentation, and peer-reviewed optics research. All independently reach the same conclusion. No credible primary source supports the affirmative. Source reliability: very high.
+            </div>
+          </details>
+
+        </div>
+      </div>
+
+      <!-- Sources + flags -->
+      <div class="px-6 py-5">
+        <div class="grid sm:grid-cols-2 gap-6">
+          <div>
+            <p class="text-xs text-vs-muted uppercase font-semibold tracking-wide mb-3">Key Sources</p>
+            <ul class="flex flex-col gap-1.5">
+              <li class="flex items-center gap-2 text-xs text-vs-muted"><div class="w-1 h-1 rounded-full bg-vs-blue shrink-0"></div>NASA.gov — FAQs on the Great Wall</li>
+              <li class="flex items-center gap-2 text-xs text-vs-muted"><div class="w-1 h-1 rounded-full bg-vs-blue shrink-0"></div>Scientific American — Myth Debunked</li>
+              <li class="flex items-center gap-2 text-xs text-vs-muted"><div class="w-1 h-1 rounded-full bg-vs-blue shrink-0"></div>Vision Research Journal — Visual Acuity Study</li>
+              <li class="flex items-center gap-2 text-xs text-vs-muted"><div class="w-1 h-1 rounded-full bg-vs-blue shrink-0"></div>Snopes.com — Fact Check</li>
+            </ul>
+          </div>
+          <div>
+            <p class="text-xs text-vs-muted uppercase font-semibold tracking-wide mb-3">Flags</p>
+            <div class="flex flex-wrap gap-2">
+              <span class="px-2.5 py-1 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-xs font-medium">TEXTBOOK_MYTH</span>
+              <span class="px-2.5 py-1 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium">WIDELY_DEBUNKED</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =====================================================================
+     PRICING
+====================================================================== -->
+<section id="pricing" class="py-28 relative overflow-hidden">
+  <div class="absolute inset-0 bg-gradient-to-b from-vs-bg via-vs-surface/20 to-vs-bg pointer-events-none"></div>
+  <div class="max-w-5xl mx-auto px-6 relative z-10">
+    <div class="text-center mb-14">
+      <p class="text-vs-green text-sm font-semibold tracking-widest uppercase mb-3">Pricing</p>
+      <h2 class="text-3xl md:text-5xl font-bold text-white mb-4">Truth at every level.</h2>
+      <p class="text-vs-muted">No lock-in. Cancel anytime.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+
+      <!-- Free -->
+      <div class="pricing-card bg-vs-card border border-vs-border rounded-2xl p-7 flex flex-col gap-4">
+        <div>
+          <p class="text-vs-muted text-sm font-medium mb-1">Free</p>
+          <p class="text-4xl font-black text-white">$0</p>
+          <p class="text-vs-muted text-sm mt-1">Forever</p>
+        </div>
+        <ul class="flex flex-col gap-2.5 text-sm text-vs-muted">
+          <li class="flex items-center gap-2"><svg class="w-4 h-4 text-vs-green shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>3 verifications / day</li>
+          <li class="flex items-center gap-2"><svg class="w-4 h-4 text-vs-green shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Basic Verity Report</li>
+          <li class="flex items-center gap-2"><svg class="w-4 h-4 text-vs-green shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Verdict + confidence score</li>
+          <li class="flex items-center gap-2 opacity-40"><svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>Full reasoning chain</li>
+          <li class="flex items-center gap-2 opacity-40"><svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>API access</li>
+          <li class="flex items-center gap-2 opacity-40"><svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>Export to JSON/PDF</li>
+        </ul>
+        <a href="#capture" class="mt-auto block text-center px-5 py-3 rounded-xl border border-vs-border text-vs-text text-sm font-semibold hover:border-vs-blue/40 hover:text-white transition-colors">
+          Start Free
+        </a>
+      </div>
+
+      <!-- Pro — highlighted -->
+      <div class="pricing-card relative bg-gradient-to-b from-vs-green/8 to-vs-card border border-vs-green/30 rounded-2xl p-7 flex flex-col gap-4 shadow-[0_0_50px_rgba(0,229,160,0.07)]">
+        <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-vs-green text-vs-bg text-xs font-bold tracking-wide">Most Popular</div>
+        <div>
+          <p class="text-vs-green text-sm font-medium mb-1">Pro</p>
+          <p class="text-4xl font-black text-white">$9<span class="text-xl font-medium text-vs-muted">/mo</span></p>
+          <p class="text-vs-muted text-sm mt-1">Billed monthly</p>
+        </div>
+        <ul class="flex flex-col gap-2.5 text-sm text-vs-text">
+          <li class="flex items-center gap-2"><svg class="w-4 h-4 text-vs-green shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Unlimited verifications</li>
+          <li class="flex items-center gap-2"><svg class="w-4 h-4 text-vs-green shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Full 5-agent Verity Report</li>
+          <li class="flex items-center gap-2"><svg class="w-4 h-4 text-vs-green shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Complete reasoning chain</li>
+          <li class="flex items-center gap-2"><svg class="w-4 h-4 text-vs-green shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Source citations</li>
+          <li class="flex items-center gap-2"><svg class="w-4 h-4 text-vs-green shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>REST API access</li>
+          <li class="flex items-center gap-2"><svg class="w-4 h-4 text-vs-green shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Export JSON / PDF</li>
+        </ul>
+        <button onclick="handleProCheckout()"
+          class="mt-auto block text-center px-5 py-3.5 rounded-xl bg-vs-green text-vs-bg text-sm font-bold hover:bg-emerald-400 transition-all shadow-[0_0_20px_rgba(0,229,160,0.2)] hover:shadow-[0_0_30px_rgba(0,229,160,0.35)] active:scale-95">
+          Get Pro — $9/mo
+        </button>
+      </div>
+
+      <!-- Enterprise -->
+      <div class="pricing-card bg-vs-card border border-vs-border rounded-2xl p-7 flex flex-col gap-4">
+        <div>
+          <p class="text-vs-muted text-sm font-medium mb-1">Enterprise</p>
+          <p class="text-4xl font-black text-white">Custom</p>
+          <p class="text-vs-muted text-sm mt-1">Volume pricing</p>
+        </div>
+        <ul class="flex flex-col gap-2.5 text-sm text-vs-muted">
+          <li class="flex items-center gap-2"><svg class="w-4 h-4 text-vs-green shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Everything in Pro</li>
+          <li class="flex items-center gap-2"><svg class="w-4 h-4 text-vs-green shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Custom agent tuning</li>
+          <li class="flex items-center gap-2"><svg class="w-4 h-4 text-vs-green shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Bulk claim ingestion</li>
+          <li class="flex items-center gap-2"><svg class="w-4 h-4 text-vs-green shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Dedicated SLA</li>
+          <li class="flex items-center gap-2"><svg class="w-4 h-4 text-vs-green shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>White-label option</li>
+        </ul>
+        <a href="mailto:hello@verityswarm.com"
+          class="mt-auto block text-center px-5 py-3 rounded-xl border border-vs-border text-vs-text text-sm font-semibold hover:border-vs-blue/40 hover:text-white transition-colors">
+          Contact Sales
+        </a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- =====================================================================
+     EMAIL CAPTURE
+====================================================================== -->
+<section id="capture" class="py-24 relative">
+  <div class="max-w-2xl mx-auto px-6 text-center">
+    <div class="bg-gradient-to-b from-vs-card to-vs-surface border border-vs-border rounded-3xl p-10 shadow-[0_0_80px_rgba(0,0,0,0.5)]">
+      <div class="w-14 h-14 rounded-2xl bg-vs-green/12 border border-vs-green/25 flex items-center justify-center text-2xl mx-auto mb-6">🛡️</div>
+      <h2 class="text-2xl md:text-3xl font-bold text-white mb-3">Get early access.</h2>
+      <p class="text-vs-muted mb-8 leading-relaxed">
+        VeritySwarm is launching soon. Join the waitlist for free Pro access on day one.
+      </p>
+      <form id="captureForm" onsubmit="handleCapture(event)" class="flex flex-col sm:flex-row gap-3">
+        <input
+          id="emailInput"
+          type="email"
+          required
+          placeholder="your@email.com"
+          class="flex-1 px-4 py-3.5 rounded-xl bg-vs-bg border border-vs-border text-vs-text placeholder-vs-muted/50 text-sm outline-none focus:border-vs-green/40 focus:shadow-[0_0_0_2px_rgba(0,229,160,0.12)] transition-all"
+        />
+        <button type="submit" class="px-6 py-3.5 rounded-xl bg-vs-green text-vs-bg font-bold text-sm hover:bg-emerald-400 transition-all shadow-[0_0_20px_rgba(0,229,160,0.15)] hover:shadow-[0_0_30px_rgba(0,229,160,0.3)] whitespace-nowrap">
+          Join Waitlist
+        </button>
+      </form>
+      <p id="captureSuccess" class="hidden mt-4 text-vs-green text-sm font-medium">
+        ✓ You're on the list. Truth incoming.
+      </p>
+      <p class="mt-4 text-xs text-vs-muted">No spam. Unsubscribe any time.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- =====================================================================
+     FOOTER
+====================================================================== -->
+<footer class="border-t border-vs-border py-10">
+  <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-vs-muted">
+    <div class="flex items-center gap-2">
+      <svg viewBox="0 0 32 32" fill="none" class="w-6 h-6">
+        <path d="M16 2 L29 7 L29 16 C29 23 22.5 29 16 31 C9.5 29 3 23 3 16 L3 7 Z" fill="rgba(0,229,160,0.12)" stroke="#00e5a0" stroke-width="1.5"/>
+        <path d="M11 16 L14.5 19.5 L21 13" stroke="#00e5a0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="font-semibold text-white">VeritySwarm</span>
+      <span class="text-vs-border mx-1">·</span>
+      verityswarm.com · verityswarm.net
+    </div>
+    <div class="flex items-center gap-6">
+      <a href="#" class="hover:text-white transition-colors">Privacy</a>
+      <a href="#" class="hover:text-white transition-colors">Terms</a>
+      <a href="mailto:hello@verityswarm.com" class="hover:text-white transition-colors">Contact</a>
+    </div>
+    <p class="text-xs">© 2026 VeritySwarm. The anchor holds.</p>
+  </div>
+</footer>
+
+
+<!-- =====================================================================
+     JAVASCRIPT
+====================================================================== -->
+<script>
+  // Example claim buttons
+  function setExample(btn) {
+    document.getElementById('claimInput').value = btn.dataset.claim;
+  }
+
+  // Fake demo animation (real calls go to backend API)
+  const SAMPLE_REPORT = {
+    "The Great Wall of China is visible from space with the naked eye.": {
+      verdict: "FALSE", confidence: 94, badge: "badge-false", icon: "✗",
+      summary: "This claim is false. Human visual acuity at ~400km altitude cannot resolve objects narrower than ~10km; the Great Wall averages 5–8m wide. NASA, astronaut accounts, and multiple peer-reviewed optics studies unanimously confirm this is a persistent myth.",
+    },
+    default: {
+      verdict: "PARTIALLY TRUE", confidence: 61, badge: "badge-partial", icon: "~",
+      summary: "The swarm found mixed evidence. Some aspects of this claim are supported by credible sources, but important context and counter-evidence were identified. Review the full reasoning chain for a complete picture.",
+    }
+  };
+
+  const AGENT_MESSAGES = [
+    "Dispatching Researcher...",
+    "Skeptic challenging the claim...",
+    "Bias Detector scanning framing...",
+    "Source Cross-Checker verifying...",
+    "Synthesizer issuing verdict...",
+  ];
+
+  function runDemo() {
+    const claim = document.getElementById('claimInput').value.trim();
+    if (!claim) return;
+
+    const loading = document.getElementById('loadingState');
+    loading.classList.remove('hidden');
+    loading.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    const steps = document.querySelectorAll('.agent-step');
+    const loadingText = document.getElementById('loadingText');
+
+    let i = 0;
+    const interval = setInterval(() => {
+      if (i < steps.length) {
+        loadingText.textContent = AGENT_MESSAGES[i];
+        steps[i].classList.remove('opacity-30');
+        steps[i].classList.add('opacity-100');
+        i++;
+      } else {
+        clearInterval(interval);
+        setTimeout(() => showReport(claim), 400);
+      }
+    }, 700);
+  }
+
+  function showReport(claim) {
+    document.getElementById('loadingState').classList.add('hidden');
+
+    const data = SAMPLE_REPORT[claim] || SAMPLE_REPORT.default;
+
+    // Update report
+    document.getElementById('reportClaim').textContent = `"${claim}"`;
+    const badge = document.getElementById('verdictBadge');
+    badge.className = `inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border text-sm font-bold tracking-wide ${data.badge}`;
+    badge.innerHTML = `<span>${data.icon}</span> ${data.verdict}`;
+    document.getElementById('confScore').textContent = `${data.confidence} / 100`;
+    document.getElementById('confBar').style.width = `${data.confidence}%`;
+    document.getElementById('reportSummary').textContent = data.summary;
+
+    document.getElementById('reportCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Reset agent steps for next run
+    document.querySelectorAll('.agent-step').forEach(s => {
+      s.classList.add('opacity-30');
+      s.classList.remove('opacity-100');
+    });
+  }
+
+  // Email capture (replace with real backend)
+  function handleCapture(e) {
+    e.preventDefault();
+    const email = document.getElementById('emailInput').value;
+    console.log('Waitlist signup:', email);
+    // TODO: POST to /api/waitlist or Mailchimp/ConvertKit
+    document.getElementById('captureForm').style.opacity = '0.4';
+    document.getElementById('captureForm').style.pointerEvents = 'none';
+    document.getElementById('captureSuccess').classList.remove('hidden');
+  }
+
+  // Stripe checkout stub
+  function handleProCheckout() {
+    // TODO: replace href with real Stripe checkout session URL
+    const checkoutUrl = 'https://buy.stripe.com/REPLACE_WITH_REAL_LINK';
+    alert('Stripe checkout coming soon.\n\nIntegrate stripe.checkout.Session.create() in your backend and replace this with the real checkout URL.');
+    // window.location.href = checkoutUrl;
+  }
+
+  // Animate confidence bar on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const bar = entry.target.querySelector('.conf-bar');
+        if (bar) {
+          const w = bar.style.width;
+          bar.style.width = '0%';
+          setTimeout(() => { bar.style.width = w; }, 100);
+        }
+      }
+    });
+  }, { threshold: 0.5 });
+
+  document.querySelectorAll('#reportCard').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
