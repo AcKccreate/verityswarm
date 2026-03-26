@@ -1,0 +1,62 @@
+[
+  {
+    "id": "lead-001",
+    "company": "TechStartup Inc",
+    "contact_name": "Sarah Chen",
+    "contact_email": "sarah@techstartup.io",
+    "industry": "technology",
+    "status": "pending",
+    "tool": "verity-swarm",
+    "draft_subject": "Verify claims before they go viral — VeritySwarm",
+    "draft_body": "Hi Sarah, I noticed TechStartup is in the content verification space. VeritySwarm uses 5 AI agents to cross-check any claim with sourced citations and confidence scores. Would a quick demo be useful?",
+    "created_at": "2026-03-26"
+  },
+  {
+    "id": "lead-002",
+    "company": "MediaWatch Group",
+    "contact_name": "James Rodriguez",
+    "contact_email": "james@mediawatchgroup.com",
+    "industry": "media",
+    "status": "pending",
+    "tool": "verity-swarm",
+    "draft_subject": "Stop misinformation before it spreads — automated fact-checking",
+    "draft_body": "Hi James, MediaWatch's editorial team might benefit from VeritySwarm — it runs 5 specialized AI agents in 2 rounds to verify any claim, with full source citations. Happy to show you a live demo.",
+    "created_at": "2026-03-26"
+  },
+  {
+    "id": "lead-003",
+    "company": "EduVerify Labs",
+    "contact_name": "Maria Gonzalez",
+    "contact_email": "maria@edverifylabs.com",
+    "industry": "education",
+    "status": "pending",
+    "tool": "resume-optimizer",
+    "draft_subject": "Help your students land jobs — AI resume optimization",
+    "draft_body": "Hi Maria, EduVerify's career services team could use our Resume Optimizer to help students tailor resumes to specific job postings with AI-powered suggestions. Free trial available.",
+    "created_at": "2026-03-26"
+  },
+  {
+    "id": "lead-004",
+    "company": "DataDriven Marketing",
+    "contact_name": "Alex Kim",
+    "contact_email": "alex@datadrivenmarketing.co",
+    "industry": "marketing",
+    "status": "pending",
+    "tool": "verity-swarm",
+    "draft_subject": "Fact-check your content pipeline automatically",
+    "draft_body": "Hi Alex, DataDriven's content team produces a lot of claims-heavy copy. VeritySwarm can automatically verify stats and claims before they publish, reducing correction risk. Want to see it in action?",
+    "created_at": "2026-03-26"
+  },
+  {
+    "id": "lead-005",
+    "company": "LegalTech Solutions",
+    "contact_name": "Patricia Nguyen",
+    "contact_email": "patricia@legaltechsolutions.com",
+    "industry": "legal",
+    "status": "pending",
+    "tool": "verity-swarm",
+    "draft_subject": "AI-powered claim verification for legal research",
+    "draft_body": "Hi Patricia, VeritySwarm can help legal teams verify factual claims in depositions, briefs, and case research with sourced citations and confidence scores. Interested in a walkthrough?",
+    "created_at": "2026-03-26"
+  }
+]
